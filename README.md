@@ -14,12 +14,12 @@
 
 ```bash
 pip install -r requirements.txt
-
-###  第二步：启动服务
+```
+### 第二步：启动服务
 
 ```bash
 uvicorn main:app --reload
-
+```
 
 然后打开浏览器访问：
 
