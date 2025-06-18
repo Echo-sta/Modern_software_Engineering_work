@@ -6,7 +6,7 @@ import operator
 import re
 
 # 创建 FastAPI 实例
-app = FastAPI(title="Super Calculator API", description="支持函数、常量和基础运算的超级计算器", version="1.2.0")
+app = FastAPI(title="Super Calculator API", description="支持函数、常量和基础运算的超级计算器", version="1.3.0")
 
 # 允许跨域（适用于前端调用）
 app.add_middleware(
@@ -20,6 +20,9 @@ app.add_middleware(
 # 请求模型
 class ExpressionRequest(BaseModel):
     expression: str
+
+# ✅ 计算历史记录（内存存储）
+calculation_history = []
 
 # 计算器核心逻辑
 class SuperCalculator:
@@ -48,11 +51,8 @@ class SuperCalculator:
         }
 
     def validate_expression(self, expression: str):
-        # 合法字符检查
         if not re.match(r"^[0-9a-zA-Z+\-*/().,\s^]*$", expression):
             raise ValueError("表达式包含非法字符")
-
-        # 括号匹配检查
         if expression.count('(') != expression.count(')'):
             raise ValueError("表达式中的括号不匹配")
 
@@ -61,17 +61,14 @@ class SuperCalculator:
             expression = expression.lower().replace(" ", "")
             self.validate_expression(expression)
 
-            # 安全替换常量：只替换完整单词，避免替换错
             for const, value in self.constants.items():
                 expression = re.sub(rf'\b{const}\b', str(value), expression)
 
-            # 构造允许使用的函数和常量
             allowed_names = {
                 **self.functions,
                 **self.constants
             }
 
-            # 添加 math 中的安全函数
             safe_math = {k: getattr(math, k) for k in dir(math) if not k.startswith("__")}
             allowed_names.update(safe_math)
 
@@ -98,6 +95,18 @@ def calculate(request: ExpressionRequest):
     """
     try:
         result = calc.evaluate(request.expression)
+
+        # ✅ 添加到历史记录
+        calculation_history.append({
+            "expression": request.expression,
+            "result": result
+        })
+
         return {"result": result}
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
+
+# ✅ 路由：GET 计算历史记录
+@app.get("/history", summary="获取计算历史记录", response_description="返回历史记录")
+def get_history():
+    return {"history": calculation_history}
