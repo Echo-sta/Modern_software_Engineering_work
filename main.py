@@ -24,7 +24,7 @@ class ExpressionRequest(BaseModel):
 # 计算历史记录（内存存储）
 calculation_history = []
 
-# 计算器核心逻辑
+# 计算器的核心逻辑
 class SuperCalculator:
     def __init__(self):
         self.constants = {
