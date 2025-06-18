@@ -21,7 +21,7 @@ app.add_middleware(
 class ExpressionRequest(BaseModel):
     expression: str
 
-# ✅ 计算历史记录（内存存储）
+# 计算历史记录（内存存储）
 calculation_history = []
 
 # 计算器核心逻辑
